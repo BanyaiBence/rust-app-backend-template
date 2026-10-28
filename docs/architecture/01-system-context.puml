@@ -1,0 +1,23 @@
+@startuml system-context
+!include style.iuml
+title System context
+
+actor "API client\n(curl, scripts)" as cli
+actor "Browser client\n(SPA on an allowed origin)" as browser
+
+rectangle "backend" as app <<system>> {
+  note as N
+    JSON HTTP API (axum + tokio)
+    · register / log in
+    · CRUD on the caller's own data (notes)
+    · JWT (HS256) bearer authentication
+    · OpenAPI at /openapi.json, docs at /docs
+  end note
+}
+
+database "PostgreSQL 17\n(users, notes)" as pg
+
+cli --> app : HTTPS/HTTP JSON\nAuthorization: Bearer <jwt>
+browser --> app : same, subject to CORS\n(CORS_ALLOWED_ORIGINS)
+app --> pg : sqlx connection pool\n(DB_MAX_CONNECTIONS, default 10)
+@enduml

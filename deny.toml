@@ -1,0 +1,43 @@
+# cargo-deny (https://embarkstudios.github.io/cargo-deny/): `make deny`, also run in CI.
+# Fails on known vulnerabilities, disallowed licenses and dependencies from unknown sources.
+
+[advisories]
+# RustSec advisories for crates in Cargo.lock. To accept one deliberately, add its id here
+# with a comment saying why: { id = "RUSTSEC-YYYY-NNNN", reason = "..." }
+ignore = [
+  # Both reach us only through jsonwebtoken's `rust_crypto` backend, which compiles RSA and
+  # ECDSA support. Tokens here are HS256 only (`src/auth/jwt.rs` fixes the algorithm on issue
+  # and verify), so the affected RSA and elliptic-curve code is never executed. Revisit when
+  # jsonwebtoken ships fixed versions, or switch it to the `aws_lc_rs` backend.
+  { id = "RUSTSEC-2023-0071", reason = "rsa via jsonwebtoken; RSA algorithms unused (HS256 only)" },
+  { id = "RUSTSEC-2026-0387", reason = "crypto-bigint via jsonwebtoken's ECDSA; unused (HS256 only)" },
+]
+
+[licenses]
+# Permissive licenses only. A dependency offering a choice (e.g. MIT OR Apache-2.0) passes if
+# any one of its options is listed.
+allow = [
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "BSL-1.0",
+  "CDLA-Permissive-2.0",
+  "ISC",
+  "MIT",
+  "Unicode-3.0",
+  "Unlicense",
+  "Zlib",
+]
+confidence-threshold = 0.9
+# This crate itself (publish = false) has no license.
+private = { ignore = true }
+
+[bans]
+# Duplicate versions bloat builds but are often unavoidable; report, don't fail.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

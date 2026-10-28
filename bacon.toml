@@ -1,0 +1,9 @@
+# bacon (https://dystroy.org/bacon/) re-runs a job whenever the code changes.
+# `make watch` runs the server with `bacon run-long`, restarting it on every change.
+# In bacon, press `c` for clippy, `t` for tests, `r` for the server again.
+
+# Watched in addition to src/, tests/ and build.rs: new migrations must restart the server.
+watch = ["migrations"]
+
+[keybindings]
+r = "job:run-long"

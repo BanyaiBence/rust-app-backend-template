@@ -1,0 +1,5 @@
+# Pins the compiler for local builds and CI. Keep in sync with RUST_VERSION in the Dockerfile.
+[toolchain]
+channel = "1.95"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

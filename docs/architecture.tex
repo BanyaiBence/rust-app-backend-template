@@ -1,0 +1,115 @@
+% Architecture documentation template.
+% Build with `make architecture` (docs/build.sh). The script renders docs/architecture/*.puml
+% to build/figures/*.pdf and writes build/diagrams.tex, one section per diagram; this file only
+% holds the title page, the overview and the layout macros.
+%
+% To adapt it: set \projectname and \projectsubtitle below and write the overview. Add a
+% diagram by dropping a .puml file into docs/architecture/ (the file name sets the order);
+% put optional prose for it in docs/architecture/<name>.tex.
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage[font=small,labelfont=bf,hypcap=false]{caption}
+\usepackage[hidelinks]{hyperref}
+
+% ---- Project details --------------------------------------------------------------------
+\newcommand{\projectname}{backend}
+\newcommand{\projectsubtitle}{Architecture documentation}
+
+\graphicspath{{build/figures/}}
+
+% build.sh writes the git revision here; fall back gracefully when run by hand.
+\IfFileExists{build/version.tex}{\input{build/version.tex}}{\newcommand{\docversion}{unknown}}
+
+\hypersetup{
+  pdftitle={\projectname{} architecture},
+  pdfsubject={Architecture diagrams},
+}
+
+% Page dimensions in portrait orientation, saved before any landscape page swaps them.
+\newlength{\portraitwidth}
+\newlength{\portraitheight}
+\AtBeginDocument{%
+  \setlength{\portraitwidth}{\textwidth}%
+  \setlength{\portraitheight}{\textheight}%
+}
+
+% Room left for a section heading, a short paragraph and the caption.
+\newcommand{\textallowance}{9\baselineskip}
+
+% \diagram{file}{caption}: a figure scaled to fill the rest of a portrait page.
+% Not a float, so it stays on the same page as its section text.
+\newcommand{\diagram}[2]{%
+  \begin{center}
+    \includegraphics[width=\portraitwidth,
+                     height=\dimexpr\portraitheight-\textallowance\relax,
+                     keepaspectratio]{#1}
+    \captionof{figure}{#2}
+  \end{center}%
+}
+
+% \widediagram{file}{caption}: the same for use inside a landscape environment.
+\newcommand{\widediagram}[2]{%
+  \begin{center}
+    \includegraphics[width=\portraitheight,
+                     height=\dimexpr\portraitwidth-\textallowance\relax,
+                     keepaspectratio]{#1}
+    \captionof{figure}{#2}
+  \end{center}%
+}
+
+% \architecturediagram{file}{title}{prose file or empty}: one section of build/diagrams.tex,
+% on its own page. Diagrams clearly wider than tall get a landscape page.
+\newsavebox{\diagrambox}
+\newcommand{\architecturediagram}[3]{%
+  \clearpage
+  \sbox{\diagrambox}{\includegraphics{#1}}%
+  \ifdim\wd\diagrambox>1.2\ht\diagrambox
+    \begin{landscape}
+      \section{#2}
+      \if\relax\detokenize{#3}\relax\else\input{#3}\fi
+      \widediagram{#1}{#2}
+    \end{landscape}
+  \else
+    \section{#2}
+    \if\relax\detokenize{#3}\relax\else\input{#3}\fi
+    \diagram{#1}{#2}
+  \fi
+}
+
+\title{\texttt{\projectname}\\[0.3em]\large \projectsubtitle}
+\author{}
+\date{\today\\[0.3em]\small Revision \texttt{\docversion}}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\section*{Overview}
+
+% Replace with a short description of the system: what it does, the main technologies, and
+% how it is deployed.
+\texttt{\projectname} is \ldots
+
+The diagrams in this document are generated from the PlantUML sources in
+\texttt{docs/architecture/}; edit those and rebuild with \texttt{make architecture}.
+
+\clearpage
+\tableofcontents
+\listoffigures
+
+\IfFileExists{build/diagrams.tex}{\input{build/diagrams.tex}}{%
+  \clearpage
+  \section*{Diagrams missing}
+  Run \texttt{docs/build.sh} to render the diagrams.%
+}
+
+\end{document}

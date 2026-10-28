@@ -1,0 +1,48 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+# `cargo run` starts the server; `src/bin/openapi.rs` is a helper (`make openapi`).
+default-run = "backend"
+# An application, not a library for crates.io; also exempts it from the license check.
+publish = false
+
+[dependencies]
+argon2 = "0.6.0"
+axum = { version = "0.8.9", features = ["macros"] }
+chrono = { version = "0.4.45", features = ["serde"] }
+dotenvy = "0.15.7"
+jsonwebtoken = { version = "11.1.0", features = ["rust_crypto"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sqlx = { version = "0.9.0", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "migrate", "macros"] }
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["full"] }
+tower-http = { version = "0.7.1", features = ["trace", "cors", "request-id"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+utoipa = { version = "6", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-axum = "0.3"
+utoipa-scalar = { version = "0.4", features = ["axum"] }
+uuid = { version = "1.29.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+reqwest = { version = "0.13.5", default-features = false, features = ["json"] }
+tower = { version = "0.5.3", features = ["util"] }
+
+# Lint policy for every target; `make clippy` additionally turns all warnings into errors.
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+
+# Unoptimized argon2 makes every password hash in debug builds and tests painfully slow.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3

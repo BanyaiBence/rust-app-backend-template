@@ -1,0 +1,12 @@
+/target
+.env
+/docs/build
+# LaTeX output from building outside docs/build.sh
+/docs/*.aux
+/docs/*.fdb_latexmk
+/docs/*.fls
+/docs/*.log
+/docs/*.lof
+/docs/*.out
+/docs/*.toc
+/docs/*.pdf

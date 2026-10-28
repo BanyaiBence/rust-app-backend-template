@@ -1,0 +1,69 @@
+# Runs the same Makefile targets as local development, so "works on my machine" and CI agree.
+# See ADR 0005.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint-and-test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    services:
+      # Same image, credentials and port as db-test in docker-compose.yml, so .env.example works.
+      db-test:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d app"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v5
+      # rustup installs the toolchain pinned in rust-toolchain.toml on first use.
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: sqlx-cli
+      - run: cp .env.example .env
+      - run: make ci
+
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+      - run: make deny
+
+  docker:
+    name: Docker image and e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: cp .env.example .env
+      # Builds the image from the committed .sqlx cache and waits for its healthcheck.
+      - run: make up
+      - run: make test-e2e
+      - if: failure()
+        run: docker compose logs app
+      - if: always()
+        run: make down-volumes

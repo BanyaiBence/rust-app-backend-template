@@ -1,0 +1,10 @@
+target/
+.git/
+.env
+Dockerfile
+docker-compose.yml
+.dockerignore
+# The image pins its toolchain via RUST_VERSION in the Dockerfile.
+rust-toolchain.toml
+docs/
+.claude/
